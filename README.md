@@ -1,4 +1,11 @@
-# log_returns
+# log_returns  📈
+
+### Team
+| Student's name | SCIPER |
+| -------------- | ------ |
+| Etienne Salimbeni |  | 
+| Carlo Musso | 283736 |
+| Filippo Salmina | 289092 |
 
 ### Context 
 Correlation between stock prices gives powerful insights into the evolution of financial systems in interesting periods: during a financial crisis, political instability, or significant economic development of a country. Correlation tells us a lot about how stocks are linked, such as how industries are dependent on or independent of crisis or development in specific economic sectors. 
