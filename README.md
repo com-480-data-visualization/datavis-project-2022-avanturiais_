@@ -22,26 +22,26 @@ The web visualization we are currently working on can be found [here](https://lo
 [Team AvanTuRiais - Milestone 1.pdf](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/files/8446451/Data.Visualization.-.Milestone.1.pdf)
 
 
-# dependencies
+## Dependencies
 
 yarn (a js packet manager)
 
 
-# Front-End
+## Front-End
 
 ```
 cd front-end
 yarn dev
 ```
 
-# Back-end
+## Back-end
 
 ```
 cd front-end
 python3 main.py
 ```
 
-# Docker
+## Docker
 To build and launch the python-FastAPI docker navigate to the ``` docker > code ``` directory in the command line and run the command: \
 ``` docker-compose up ```
 
