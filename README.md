@@ -19,7 +19,7 @@ The web visualization we are currently working on can be found [here](https://lo
 
 ## Milestone 1
 
-[Team AvanTuRiais - Milestone 1.pdf](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/files/8446451/Data.Visualization.-.Milestone.1.pdf)
+Download [Milestone 1.pdf](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/files/8449218/Team.AvanTuRiais.-.Milestone.1.pdf) or view it in the ```/milestones/``` [directory](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/tree/main/milestones) on this repository.
 
 
 ## Dependencies
