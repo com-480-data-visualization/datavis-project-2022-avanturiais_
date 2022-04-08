@@ -3,7 +3,7 @@
 ### Team
 | Student's name | SCIPER |
 | -------------- | ------ |
-| Etienne Salimbeni |  | 
+| Etienne Salimbeni | 270963 | 
 | Carlo Musso | 283736 |
 | Filippo Salmina | 289092 |
 
@@ -37,8 +37,8 @@ yarn dev
 ## Back-end
 
 ```
-cd front-end
-python3 main.py
+cd back-end
+docker compose up
 ```
 
 ## Docker
