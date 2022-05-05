@@ -11,13 +11,15 @@
     .header{
         flex: 0 1 auto;
         display: flex;
-        justify-content: space-around;
         align-items: center;
-        max-height: 58.8px;
+        color: var(--font-color-1);
+        background-color: var(--bg-color-1);
+        padding-top: 1%;
         
 
         h1{
-           margin: 8px; 
+           margin: 5px 50px ; 
+
         }
 
         a {
@@ -27,10 +29,13 @@
             place-items: center;
             padding: 0px 20px;
             font-weight: 600;
+
+            margin: 0px 10px ; 
         }
         a:hover{
-            background-color: black;
-            color: white;
+            background-color: var(--bg-color-0);
+            color: var(--font-color-0);
+            border-radius: var(--border-rad) var(--border-rad) 0px 0px;
         }
 
         

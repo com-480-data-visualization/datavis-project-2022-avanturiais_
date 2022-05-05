@@ -1,6 +1,8 @@
 import fastapi
 import uvicorn
 import helper
+import json
+import pandas as pd
 from fastapi.middleware.cors import CORSMiddleware
 
 app = fastapi.FastAPI()
@@ -15,21 +17,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+with open('./sector.json') as sectors:
+    sector_json = json.load(sectors)
     
-@app.get('/correlation/{from_}:{to_}/{percentage}')
-def correlation(from_: int, to_: int, percentage: float):
+df = pd.read_parquet( '/back-end/server/data/us_equities_logreturns.parquet')
+          
+@app.get('/mst')
+def mst():  
     
-    if (from_ == None or to_ == None or percentage == None):
-        from_ = 0
-        to_ = 1000
-        percentage = 0.3
+    dict_list_MST = helper.get_rolling_dict(sector_json, df, 4100, 10100, 100, 'MST') #df.shape[0]
+    
+    json_data = {"all": dict_list_MST}
+    return json_data
 
-    df = helper.load_clean_data( '/back-end/server/data/us_equities_logreturns.parquet' )
-    c_df = helper.get_correlation(df, from_, to_) # !! if interval to small result in nan value
-    d_df = helper.get_distance(c_df)
-    final_dict = helper.generate_dict(d_df, percentage_keep_=percentage)
+@app.get('/fct')
+def phy():
     
-    return final_dict
+    dict_list_FCT = helper.get_rolling_dict(sector_json, df, 4100, 10100, 100, 'FCT') #df.shape[0]
+    
+    json_data = {"all": dict_list_FCT}
+    return json_data
     
 if __name__ == '__main__':
     uvicorn.run(app)
