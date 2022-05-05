@@ -23,7 +23,7 @@ Download [Milestone 1.pdf](https://github.com/com-480-data-visualization/datavis
 
 ## Milestone 2
 
-Download[Milestone 2.pdf](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/files/8630060/Team.AvanTuRiais.-.Milestone.2.pdf) or view it in the ```/milestones/``` [directory](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/tree/main/milestones) on this repository.
+Download [Milestone 2.pdf](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/files/8630060/Team.AvanTuRiais.-.Milestone.2.pdf) or view it in the ```/milestones/``` [directory](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/tree/main/milestones) on this repository.
 
 ## Dependencies
 
