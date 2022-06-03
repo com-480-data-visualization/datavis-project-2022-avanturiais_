@@ -21,9 +21,9 @@ The goal of this visualization is to represent the evolution in time of correlat
 
 The web visualization we are currently working on can be found [here](https://log-returns.vercel.app).
 
-Screen cast : [here](no-link)
+Screencast : [here](https://drive.google.com/file/d/1wPa14Ffe22kQ0mkvphe38TNsmUZIkYer/view?usp=sharing)
 
-Project process book : [here](/milestones/Team%20AvanTuRiais%20-%20PROCESS%20BOOK.pdf).
+Project process book : [here](https://github.com/com-480-data-visualization/datavis-project-2022-avanturiais_/blob/main/milestones/Team%20AvanTuRiais%20-%20PROCESS%20BOOK.pdf).
 
 ## Milestone 1
 
