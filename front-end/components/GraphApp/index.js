@@ -5,12 +5,16 @@ import cola from 'cytoscape-cola';
 
 import styles from './GraphApp.module.scss'
 import {useCallback, useLayoutEffect , useRef , useState} from 'react'
-import { FaPlay , FaStop , FaHubspot, FaTree, FaTablets, FaFirstOrderAlt , FaSortAmountUp ,FaSortAmountDownAlt , FaIndustry, FaList} from 'react-icons/fa';
+import { FaAngleRight,FaStopwatch ,  FaExpandArrowsAlt, FaCompressArrowsAlt , FaRegCalendarAlt , FaAngleLeft, FaAngleDoubleRight, FaAngleDoubleLeft, FaPlay , FaStop , FaHubspot, FaTree, FaTablets, FaFirstOrderAlt , FaSortAmountUp ,FaSortAmountDownAlt , FaIndustry, FaList} from 'react-icons/fa';
 import { BiReset } from 'react-icons/bi';
+import { BsLayoutSidebarInsetReverse } from 'react-icons/bs';
 
 import DensityPlot from '../DensityPlot';
 import SectorPlot from '../SectorPlot';
 import useInterval from '../../utils/useInterval';
+
+import NumberPicker from "react-widgets/NumberPicker";
+
 
 
 cytoscape.use( d3Force );
@@ -26,11 +30,22 @@ export default function GraphApp( props ) {
 
   const [ctn_arr, setCtn_arr] = useState(0)
 
+  const [currentDate, setCurrentDate] = useState( props.json_data['all'][0]['date'] )
   const [playButton, setPlayButton] = useState(true)
   const myInterval = useRef(null)
 
-  const [delay, setDelay] = useState(1)
+  
+  var delay_ = 1
+
+  if (graph_layout === 'concentric_layout') {
+    delay_ = 1500;
+  }
+
+  const [delay, setDelay] = useState(delay_)
+
   const [update, setUpdate] = useState(false) 
+
+  const [sideBarIsHidden, setSideBarIsHidden] = useState(false)
 
   const [arr_elements, setArr_elements] = useState(props.json_data['all'])
 
@@ -43,16 +58,91 @@ export default function GraphApp( props ) {
 
   const [selected_node_values_oder, setSelected_node_values_oder] = useState("default") 
 
-  const update_new_slider_pos = (event) =>{
+  const DAY_INTERVAL = 1
+  const WEEK_INTERVAL = 5
+  const MONTH_INTERVAL = 22
+  const YEAR_INTERVAL = 252
+
+  const update_new_slider_pos = (step) =>{
     
-    setCtn_arr(parseInt(event.target.value))
+    switch (step) {
+
+      case "m_DAY": 
+        setCtn_arr(parseInt(ctn_arr - DAY_INTERVAL))
+        break
+      case "p_DAY": 
+        setCtn_arr(parseInt(ctn_arr + DAY_INTERVAL))
+        break
+
+      case "m_WEEK":
+        setCtn_arr(parseInt(ctn_arr - WEEK_INTERVAL))
+        break
+      case "p_WEEK":
+          setCtn_arr(parseInt(ctn_arr + WEEK_INTERVAL))
+          break
+
+      case "m_MONTH":
+        setCtn_arr(parseInt(ctn_arr - MONTH_INTERVAL))
+        break
+      case "p_MONTH":
+        setCtn_arr(parseInt(ctn_arr + MONTH_INTERVAL))
+        break
+
+      case "m_YEAR":
+        setCtn_arr(parseInt(ctn_arr - YEAR_INTERVAL))
+        break
+      case "p_YEAR":
+          setCtn_arr(parseInt(ctn_arr + YEAR_INTERVAL))
+          break
+
+      default :
+        setCtn_arr(parseInt(ctn_arr))
+    }
+
+
+
     const a = arr_elements[ ctn_arr % arr_elements.length]
+
+    setCurrentDate(a['date'])
     cy.current.json({elements:a})
     ly.current = cy.current.layout(layout_map[graph_layout])
     ly.current.run()
       
     update_selected_node(selected_node.id , selected_node_values_oder)
 
+  }
+
+  const getDateForm = () => {
+    return <>
+    
+    <div className={styles.flex}>
+      <h4> DATES </h4>
+      <BiReset onClick={ () => {
+        props.change_layout(graph_layout)
+        props.reload_data(data_type)
+      }}/>
+    </div>
+    
+
+    <div className={styles.grid}>
+      <h5 > DAY</h5>
+      <FaAngleLeft onClick={ () => update_new_slider_pos("m_DAY")}/>
+      <FaAngleRight onClick={ () => update_new_slider_pos("p_DAY")}/>
+      
+      <h5> WEEK </h5> 
+      <FaAngleLeft onClick={ () => update_new_slider_pos("m_WEEK")}/>
+      <FaAngleRight onClick={ () => update_new_slider_pos("p_WEEK")}/>
+
+      <h5> MONTH </h5>
+      <FaAngleDoubleLeft onClick={ () => update_new_slider_pos("m_MONTH")}/>
+      <FaAngleDoubleRight  onClick={ () => update_new_slider_pos("p_MONTH")}/>
+
+      <h5 > YEAR </h5>
+      <FaAngleDoubleLeft onClick={ () => update_new_slider_pos("m_YEAR")}/>
+      <FaAngleDoubleRight onClick={ () => update_new_slider_pos("p_YEAR")}/>
+    </div>
+
+    </>
   }
 
   // update selected node state and fetch node edge values
@@ -129,26 +219,6 @@ export default function GraphApp( props ) {
 
   }
 
-  // load next graph layout and update related states
-  const next_graph_iteration = useCallback(() =>{
-    const a = arr_elements[ ctn_arr % arr_elements.length ]
-  
-    cy.current.json({elements:a})
-    ly.current = cy.current.layout(layout_map[graph_layout])
-    ly.current.run()
-    setCtn_arr( a => a + 1 )
-    update_selected_node(selected_node.id , selected_node_values_oder)
-  },[cy.current,ctn_arr, selected_node,arr_elements,selected_node_values_oder])
-
-  const re_render_graph = useCallback((g) =>{
-    cy.current.json({elements:g[ 0 ]})
-    ly.current = cy.current.layout(layout_map[graph_layout])
-    ly.current.run()
-
-    setCtn_arr( 0 )
-    update_selected_node(selected_node.id , selected_node_values_oder)
-  },[selected_node, selected_node_values_oder])
-
   const map_sector_to_color = {
     "Industrials"            : [255, 102, 153], 
     "Technology"             : [146, 86 , 86 ],
@@ -180,6 +250,7 @@ export default function GraphApp( props ) {
 
   useLayoutEffect(() => {
 
+
     const elements= arr_elements[ctn_arr]
 
     
@@ -190,8 +261,29 @@ export default function GraphApp( props ) {
         {
           selector: 'edge',
           style: (graph_layout === 'concentric_layout') ? 
-          {'width' : '20px', 'height' : '20px' } :
-          {'width' : '200px', 'height' : '200px' }
+          {'width' : '20px',
+           "line-color" : e => {
+            const factor = e.data('timelife')?e.data('timelife'):0
+            return factor >= 1 ? 'black' : 'red'}
+            }:
+          {'width' : '500px',
+           "line-color" : e => {
+
+             const max_color_gradient_steps = 10.0
+             const factor = e.data('timelife')? Math.min(e.data('timelife')/max_color_gradient_steps , 1.0) :0
+             const color_2 = [0, 0, 0]       // old edge
+             const color_1 = [200, 200, 200] // new edge
+
+             function lerpRGB(color1, color2, t) {
+              let color = [0,0,0];
+              color[0] = color1[0] + ((color2[0] - color1[0]) * t);
+              color[1] = color1[1] + ((color2[1] - color1[1]) * t);
+              color[2] = color1[2] + ((color2[2] - color1[2]) * t);
+              return color;
+          }
+
+             return rgb_opacity_to_rgba( lerpRGB(color_1 , color_2 , factor) , 1.0 )} // opacity doesnt effect line-color
+             }
         },
         {
           selector: 'node',
@@ -284,33 +376,55 @@ export default function GraphApp( props ) {
     return () => {}
   }, [])
 
-
   
   useInterval(function(){
 
-        
 
         if (update) {
 
+        
+        const prev_a = arr_elements[ (ctn_arr-1) % arr_elements.length ]
         const a = arr_elements[ ctn_arr % arr_elements.length ]
+
+        // keep track of new edges
+        for ( const e of a.edges){
+          const previous_e_1 = cy.current.$('edge[source = "'+e.data['source']+'"][target = "'+e.data['target']+'"]')
+          const previous_e_2 = cy.current.$('edge[source = "'+e.data['target']+'"][target = "'+e.data['source']+'"]')
+          
+          const is_still_alive =  previous_e_1.size() === 1 || previous_e_2.size() === 1
+
+          let previous_e
+          if(previous_e_1.size() === 1){
+            previous_e = previous_e_1
+          } else if (previous_e_2.size() === 1) {
+            previous_e = previous_e_2
+          }
+          
+          if( is_still_alive && isNaN( previous_e.data('timelife') ) ) {
+            e.data['timelife'] = 1
+          }
+          else {
+            e.data['timelife'] = is_still_alive? previous_e.data('timelife') + 1 : 0
+          }
+        }
+
+        setCurrentDate(a['date'])
 
         cy.current.json({elements:a})
         ly.current = cy.current.layout(layout_map[graph_layout])
         ly.current.run()
-        setCtn_arr( x => x +1 )
+        setCtn_arr( x => x + 1 )
         update_selected_node(selected_node.id , selected_node_values_oder)
         setUpdate(false)
     
       } else {
         setDelay(x => x)
       }
-      
+
   }, playButton ? null:  delay)
 
   const clean_dropdown = (event, elem, style) => {
-
     if (typeof elem != 'undefined'){
-    
       if (!elem.contains(event.target)) {
         var list = document.getElementsByClassName(style)
         for (var i = 0; i < list.length; i++) {
@@ -319,6 +433,7 @@ export default function GraphApp( props ) {
       }
     }
   }
+
   const clean_dropdown_simple = (style) => {
     var list = document.getElementsByClassName(style)
     for (var i = 0; i < list.length; i++) {
@@ -329,11 +444,11 @@ export default function GraphApp( props ) {
   // Close the dropdown if the user clicks outside of it
   window.onclick = function(event) {
 
-    clean_dropdown(event,document.getElementsByClassName(styles.dropdown)[0],styles.layouts)
+    clean_dropdown(event, document.getElementsByClassName(styles.dropdown)[0],styles.layouts)
     clean_dropdown(event, document.getElementsByClassName(styles.dropdown)[1],styles.orderBar)
+    clean_dropdown(event, document.getElementsByClassName(styles.dateForm)[0] ,styles.dateform_window) 
 
   }
-  
 
   const cola_layout = {
     name: 'cola',
@@ -345,8 +460,8 @@ export default function GraphApp( props ) {
     animate:true,
     centerGraph: true,
     nodeSpacing: function( node ){ return 1; }, // space around node
-    edgeLength:  function( edge ){ return 4000./edge.data("value")},
-    stop: function(){
+    edgeLength:  function( edge ){ return 4000*edge.data("value")},
+    stop: async function(){
       setUpdate(true)
     } , 
      
@@ -355,10 +470,34 @@ export default function GraphApp( props ) {
     refresh:1
   }
 
-  
-  const sleep = (milliseconds) => {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
+   /* CONCENTRIC LAYOUT */
+  const [circleIdx, setCircleIdx] = useState(0) // default 0
+  const [rangeIdxUp, setRangeIdxUp] = useState(1) // default 1
+  const [rangeIdxDown, setRangeIdxDown] = useState(0) // default 0
+
+  function nodeListForPlotSelection() {
+    let nodeList = []
+
+    if (cy.current !== null && cy.current.nodes().length > 0) {
+
+      const allNodes = [...cy.current.nodes()];
+ 
+      for (var i = 0; i < allNodes.length; ++i) {
+
+        const n = allNodes[i]
+        const thisCircleIdx = (cy.current.nodes().maxDegree() - n.degree()) / 2
+        if (thisCircleIdx >= circleIdx - rangeIdxDown && thisCircleIdx <= circleIdx + rangeIdxUp) {
+          nodeList.push(n.data("sector"))
+        }
+      }
+      return nodeList;
+    } else {
+      return undefined;
+    }
+    
   }
+
+
   const concentric_layout = {
     name: 'concentric',
     fit: false,
@@ -372,10 +511,9 @@ export default function GraphApp( props ) {
       return node.degree()
     },
     levelWidth: function( nodes ){
-      return nodes.maxDegree() / 8; // TODO change with FCT data
+      return 2
     },
     stop: async function(){
-      await sleep(1500)
       setUpdate(true)
     } ,
   }
@@ -389,85 +527,103 @@ export default function GraphApp( props ) {
   return (
     <div style={{width:"100%",height:"100%" , display:'flex'}}>
     
+
+
       <div className={styles.cyContainer}>
-      <div id="cy" className={styles.cyDiv}>
+        <div id="cy" className={styles.cyDiv}>
 
-      <div className={styles.dropdown}>
-        <FaList onClick={() => {
-       
-          var list = document.getElementsByClassName(styles.layouts)
-          for (var i = 0; i < list.length; i++) {
-            list[i].style['display'] = "block"
-          } 
-        }
-        }/>
-  
-        <div className={styles.layouts}>
-        <div className={styles.btn} onClick={ () => {
-            props.change_layout(graph_layout)
-            props.reload_data(data_type)
-          }}>
-             <BiReset/>
-              <p>RESET</p>
-          </div>
-          <h3> LAYOUT </h3>
-          <div className={styles.btn} onClick={ () => {
-            props.change_layout('cola_layout')
-            props.reload_data("MST_123")
-          }}>
-             <FaHubspot/>
-              <p>COLA</p>
-          </div>
-          
-          <div className={styles.btn} onClick={ () => { {
-            props.change_layout('concentric_layout')    
-            props.reload_data("FCT_0p7")
-          } }}>
-             <FaFirstOrderAlt/>
-              <p>CONCENTRIC</p>
-          </div>
-          
-          
-        </div>
-      </div>
+          <div className={styles.dropdown}>
 
+          <h2> { currentDate } </h2>
 
+            <FaList onClick={() => {
+                for ( const e of document.getElementsByClassName(styles.layouts) ) { e.style['display'] = "block" }
+              }}/>
+
+            { !sideBarIsHidden && <FaExpandArrowsAlt onClick={ () => {
+                    document.getElementsByClassName(styles.wrapper)[0].style['display'] = "none"
+                    document.getElementsByClassName(styles.cyContainer)[0].style['width'] = "100%"
+                    setSideBarIsHidden(true) }}/> }
+            { sideBarIsHidden && <FaCompressArrowsAlt onClick={ () => {
+                    document.getElementsByClassName(styles.wrapper)[0].style['display'] = "unset"
+                    document.getElementsByClassName(styles.cyContainer)[0].style['width'] = "70%"
+                    setSideBarIsHidden(false) }}/> }
+                
+            
       
-        <div className={styles.legend}>
-          {Object.keys(map_sector_to_color).map( (el , idx) => {
-          return <div key={idx} className={styles.lgditm}>
-             <div className={styles.color} style={{backgroundColor:sector_opacity_to_rgba(el , 1.0)}}></div> 
-             {el}
-            </div> })}
+            <div className={styles.layouts}>
+              <h4> LAYOUT </h4>
+              <div className={styles.btn} onClick={ () => {
+                props.change_layout('cola_layout')
+                props.reload_data("MST_123")
+              }}>
+                <FaHubspot/>
+                  <p>COLA</p>
+              </div>
+              
+              <div className={styles.btn} onClick={ () => { {
+                props.change_layout('concentric_layout')    
+                props.reload_data("FCT_q1")
+              } }}>
+                <FaFirstOrderAlt/>
+                  <p>CONCENTRIC</p>
+              </div>
+              
+            </div>
           </div>
 
-        
+          <div className={styles.legend}>
+            {Object.keys(map_sector_to_color).map( (el , idx) => {
+            return <div key={idx} className={styles.lgditm}>
+                <div className={styles.color} style={{backgroundColor:sector_opacity_to_rgba(el , 1.0)}}></div> 
+                {el}
+              </div> })}
+          </div>
 
-      </div>
-      <div className={styles.navbar}>
+        </div>
+
+
+
+        <div className={styles.navbar}>
+
+          <div className={styles.dateForm}>
+            <FaStopwatch onClick={() => { 
+              for ( const e of document.getElementsByClassName(styles.dateform_window) ) { e.style['display'] = "grid" }
+              }} />
+            <div className={styles.dateform_window}>
+              {getDateForm()}
+            </div>
+          </div>
+
           {playButton ? 
-          <FaPlay onClick={() => setPlayButton(false)}/>:
+          <FaPlay onClick={ e => setPlayButton(false)}/>:
           <FaStop onClick={ e => setPlayButton(true)}/>
           }
+
           <div className={styles.bar} >
-            <input type="range" min="0" max={arr_elements.length} value={ctn_arr % arr_elements.length} onChange={update_new_slider_pos} step="1" className={styles.slider}/>
+            <input type="range" min="0" max={arr_elements.length} value={ctn_arr % arr_elements.length} step="1" className={styles.slider}/>
             <div className={styles.date} style={{left:"0%"}} >2007</div>
             
-            <div className={styles.dateCriseMarker} style={{left:"9%"}} >
+            <div className={styles.dateCriseMarker} style={{left:"22%"}} >
               <div className={styles.dateCrise1}  >Financial Crisis</div>
             </div>
-            <div className={styles.date} style={{left:"45%"}}>2015</div>
+            <div className={styles.date} style={{left:"45%"}}>2010</div>
             
-            <div className={styles.dateCriseMarker} style={{left:"84%"}} >
-            <div className={styles.dateCrise2}  >COVID-19 pandemic</div>
-            </div>
-            <div className={styles.date} style={{left:"95%"}}>2022</div>
+            <div className={styles.date} style={{left:"95%"}}>2013</div>
           </div>
+
+          
+        </div>
+
       </div>
-      </div>
+
+
+
+
+
+
 
       <div className={styles.wrapper} style={{backgroundColor: sector_opacity_to_rgba(selected_node.sector , .3),}}>
-
         <div className={styles.content} >
 
           {selected_node.label !== "SELECT A NODE" ?<>
@@ -566,18 +722,73 @@ export default function GraphApp( props ) {
             
             </> : 
             <>
+
             <h1>Clustering Financial Time Series</h1>
             
             <p>Click on a node for more information of their correlations alongside interaction networks.</p>
 
             {graph_layout === 'concentric_layout' && 
               <>
-              <div className={styles.layout_info} >
+              <div className={styles.layout_info}>
              
               <h4> CONCENTRIC LAYOUT </h4>
 
               <div className={styles.scroll_zone}>
               <p> The concentric layout graph model assigns each node to a circular level around the centre according to its degree. High-degree nodes are positioned in the middle, while low degree nodes are positioned in the outer circles. Namely, the number of edges attached to a node determines where the node is positioned.  </p>
+              
+              <h4>Sector distribution</h4>
+              <p> Select the circle you want to visualize the sector distribution for and a range for near circles. For instance circle index 2 with range 3 will show sector distribution of the second, third and fourth circle. </p>
+            
+              <div className={styles.ctnInfo2} style={{backgroundColor: rgb_opacity_to_rgba( [255,255,255] , 0.4)}}>
+                <div className={styles.content2}>
+
+                  { nodeListForPlotSelection() !== undefined &&
+                    <SectorPlot 
+                          data={nodeListForPlotSelection()}
+                          map_sect_col={map_sector_to_color}
+                    />
+
+                  }
+                </div>
+              </div>
+
+              <h4> Circle Number </h4>
+              <NumberPicker defaultValue={0} onChange={(n) => {
+                if (n >= 0) { setCircleIdx(n) }   
+              }}/>
+
+              
+              <h4> Range OUT</h4>
+              <NumberPicker defaultValue={1} onChange={(r) => {
+                if (r >= 0) { setRangeIdxUp(r) }   
+              }}/>
+
+              <h4> Range IN</h4>
+              <NumberPicker defaultValue={0} onChange={(r) => {
+                if (r >= 0) { setRangeIdxDown(r) }   
+              }}/>    
+
+            <h4> ADJUST DISTANCE PARAMETER </h4>
+
+            <button onClick={ () => {
+                  props.change_layout('concentric_layout')    
+                  props.reload_data("FCT_q0") 
+                }}>
+                0.6
+            </button>
+            <button onClick={ () => {
+                  props.change_layout('concentric_layout')    
+                  props.reload_data("FCT_q1") 
+                }}>
+                0.7
+            </button>
+            <button onClick={ () => {
+                  props.change_layout('concentric_layout')    
+                  props.reload_data("FCT_q2")
+                }}>
+                0.8
+            </button>
+              
               <h4> INSIGHT </h4>
               <p> When loading data for a given time window, all edges with low correlation are discarded, 
                 the threshold with which these edges are discarded can be selected here-under in terms of 
@@ -585,37 +796,7 @@ export default function GraphApp( props ) {
                 market is generally highly correlated, all nodes tend to concentrate in the inner circles.
                 In contrast, when the market is generally less correlated, nodes are mainly positioned 
                 in the outer circles of the concentric layout.  </p>
-                <h4> ADJUST DISTANCE PARAMETER </h4>
-                <button onClick={ () => {
-                      props.change_layout('concentric_layout')    
-                      props.reload_data("FCT_0p5") 
-                    }}>
-                    <p>0.5</p>
-                </button>
-                <button onClick={ () => {
-                      props.change_layout('concentric_layout')    
-                      props.reload_data("FCT_0p6") 
-                    }}>
-                    <p>0.6</p>
-                </button>
-                <button onClick={ () => {
-                      props.change_layout('concentric_layout')    
-                      props.reload_data("FCT_0p7") 
-                    }}>
-                    <p>0.7</p>
-                </button>
-                <button onClick={ () => {
-                      props.change_layout('concentric_layout')    
-                      props.reload_data("FCT_0p8")
-                    }}>
-                    <p>0.8</p>
-                </button>
-                <button onClick={ () => {
-                      props.change_layout('concentric_layout')    
-                      props.reload_data("FCT_0p9")
-                    }}>
-                    <p>0.9</p>
-                </button>
+
                 </div>
               </div>
               </>}
@@ -630,35 +811,43 @@ export default function GraphApp( props ) {
                 <p> the more the graph is dense the more the assets are correlated , ex during a crisis. </p>
                 
                 <p> You can change the edge value rounding (number of bins) for create the mst.</p>
-                <h3>options : </h3>
-
-                <button onClick={ () => {
-                      props.change_layout('cola_layout')
-                      props.reload_data("MST_123")
-                    }}>
-                    <p> standard </p>
-                </button>
-
-                <button onClick={ () => {
-                      props.change_layout('cola_layout')
-                      props.reload_data("MST_p1")
-                    }}>
-                    <p>5</p>
-                </button>
                 
-                <button onClick={ () => {
-                      props.change_layout('cola_layout')
-                      props.reload_data("MST_p2")
-                    }}>
-                    <p>10</p>
-                </button>
+                <div className={styles.options_1} >
+                   <h3>options : </h3>
+                   
+                   <button onClick={ () => {
+                          props.change_layout('cola_layout')
+                          props.reload_data("MST_123")
+                        }}>
+                        standard
+                    </button>
 
-                <button onClick={ () => {
-                      props.change_layout('cola_layout')
-                      props.reload_data("MST_p3")
-                    }}>
-                    <p>15</p>
-                </button>
+                    <button onClick={ () => {
+                          props.change_layout('cola_layout')
+                          props.reload_data("MST_p1")
+                        }}>
+                        5
+                    </button>
+                    
+                    <button onClick={ () => {
+                            props.change_layout('cola_layout')
+                            props.reload_data("MST_p2")
+                          }}>
+                          10
+                    </button>
+
+                    <button onClick={ () => {
+                            props.change_layout('cola_layout')
+                            props.reload_data("MST_p3")
+                          }}>
+                          15
+                    </button>
+                
+                </div>
+               
+
+                
+                
 
                 </div>
                
@@ -674,16 +863,6 @@ export default function GraphApp( props ) {
     </div>
   )
 }
-
-const propTypes = {
-  layout: String,
-  data_type: String,
-  json_data: { },
-  reload_data: Function,
-  change_layout: Function
-}; 
-
-GraphApp.propTypes = propTypes;
 
 GraphApp.defaultProps = {
   layout: 'cola_layout',
